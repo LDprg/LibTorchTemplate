@@ -19,3 +19,11 @@ if (MSVC)
                      ${TORCH_DLLS}
                      $<TARGET_FILE_DIR:LibTorchTemplate>)
 endif (MSVC)
+
+# copy data to bin
+
+add_custom_command(TARGET LibTorchTemplate
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                     data
+                     $<TARGET_FILE_DIR:LibTorchTemplate>)
