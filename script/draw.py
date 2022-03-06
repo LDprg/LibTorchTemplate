@@ -13,9 +13,9 @@ for row in open(sys.argv[1],'r'):
 
 plt.title('AI')
 
-plt.xlabel('Output')
-plt.ylabel('Input')  
+plt.ylabel('Output')
+plt.xlabel('Input')  
 
-plt.plot(value, ai, marker = ' ', c = 'g')
-plt.plot(value, sin, marker = ' ', c = 'b')
+plt.plot(value, ai, c = 'g')
+plt.plot(value, sin, c = 'b')
 plt.show()
