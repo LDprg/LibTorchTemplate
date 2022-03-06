@@ -1,1 +1,1 @@
-cmake . -DCMAKE_PREFIX_PATH="C:\libtorch"
+cmake . 

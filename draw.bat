@@ -1,0 +1,1 @@
+python ./script/draw.py graph.txt
