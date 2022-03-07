@@ -1,4 +1,9 @@
+#include <sstream>
+
 #include <torch\torch.h>
+#include <tensorboard_logger.h>
+
+#include "TBFGenerator.h"
 
 struct Net : public torch::nn::Module
 {
@@ -13,8 +18,8 @@ struct Net : public torch::nn::Module
 
 	torch::Tensor forward(torch::Tensor x)
 	{
-		x = torch::relu(fc1->forward(x));
-		x = torch::relu(fc2->forward(x));
+		x = torch::leaky_relu(fc1->forward(x));
+		x = torch::leaky_relu(fc2->forward(x));
 		x = fc3->forward(x);
 
 		return x;
@@ -28,34 +33,44 @@ auto main() -> int
 	std::remove("./graph.txt");
 
 	auto net = std::make_shared<Net>();
-
 	net->to(device_type);
+	
+	TensorBoardLogger TBL(TBFGenerator("runs", "run5"));
 
-	torch::Tensor tensor = torch::randn({ 100,1 }, device_type);
-	torch::Tensor tensorbak = torch::randn({ 100,1 }, device_type);
-	torch::optim::SGD optimizer(net->parameters(), 0.01);
+	torch::Tensor tensor;
+	torch::Tensor tensortar;
+	torch::optim::SGD optimizer(net->parameters(), 0.001);
 
 	for (int i = 0; i < 20000; ++i)
 	{
 		optimizer.zero_grad();
-		tensor = torch::randn({ 100,1 }, device_type)*M_PI*2;
-		tensorbak = torch::sin(tensor);
+		tensor = torch::rand({200,1}, device_type) * M_PI * 2;
+		tensortar = torch::sin(tensor);
 
 		torch::Tensor prediction = net->forward(tensor);
-		torch::Tensor loss = torch::mse_loss(prediction, tensorbak);
+		torch::Tensor loss = torch::mse_loss(prediction, tensortar);
 
 		loss.backward();
 
 		optimizer.step();
 
-		if(i%1000==0)
+		TBL.add_scalar("Loss", i, loss.item<double>());
+
+		if (i % 1000 == 0)
+		{
 			std::cout << "Generation: " << i << "\t" << loss.item<double>() << std::endl;
+		}
 	}
 
+	TensorBoardLogger TBLS(TBFGenerator("runs", "sine", false));
+	int i = 0;
 	for (double j = 0; j < M_PI * 2; j += 0.1)
 	{
 		tensor[0][0] = j;
 		torch::Tensor prediction = net->forward(tensor);
+
+		TBL.add_scalar("Output", i, prediction[0][0].item<double>());
+		TBLS.add_scalar("Output", i, sin(j));
 
 		std::cout << j << "\t" << prediction[0][0].item<double>() << "\t" << sin(j) << std::endl;
 		std::ofstream ofs("./graph.txt", std::ofstream::app);
@@ -63,5 +78,6 @@ auto main() -> int
 		ofs << j << ';' << prediction[0][0].item<double>() << ';' << sin(j) << std::endl;
 
 		ofs.close();
+		++i;
 	}
 }

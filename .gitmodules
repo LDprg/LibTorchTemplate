@@ -1,0 +1,6 @@
+[submodule "vendor/tensorboard_logger"]
+	path = vendor/tensorboard_logger
+	url = https://github.com/RustingSword/tensorboard_logger.git
+[submodule "vendor/protobuf"]
+	path = vendor/protobuf
+	url = https://github.com/protocolbuffers/protobuf
