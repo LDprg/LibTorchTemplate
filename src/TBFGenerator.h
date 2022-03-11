@@ -1,8 +1,18 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #include <filesystem>
 #include <iomanip>
 #include <ctime>
+
+#include <torch\torch.h>
+
+template <class T>
+std::vector<T> toVector(torch::Tensor& tin)
+{
+	torch::Tensor t = tin.cpu();
+	return std::vector<T>(t.data_ptr<float>(), t.data_ptr<float>() + t.numel());
+}
 
 class TBFGenerator
 {
@@ -11,10 +21,12 @@ public:
 	{
 		std::string path = "/tfevents.";
 
-		if (autoinc)
-			name += std::to_string(getInc(logdir, name));
 
 		std::filesystem::create_directories(logdir);
+		
+		if (autoinc)
+			name += std::to_string(getInc(logdir, name));
+		
 		std::filesystem::create_directories(logdir + "/" + name);
 		path = "/" + name + path;
 

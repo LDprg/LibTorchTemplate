@@ -6,13 +6,6 @@
 
 #include "TBFGenerator.h"
 
-template <class T>
-std::vector<T> toVector(torch::Tensor& tin)
-{
-	torch::Tensor t = tin.cpu();
-	return std::vector<T>(t.data_ptr<float>(), t.data_ptr<float>() + t.numel());
-}
-
 struct Net : public torch::nn::Module
 {
 	torch::nn::Linear fc1{ nullptr }, fc2{ nullptr }, fc3{ nullptr };
@@ -43,8 +36,6 @@ struct Net : public torch::nn::Module
 auto main() -> int
 {
 	torch::Device device_type = torch::kCUDA;
-
-	std::remove("./graph.txt");
 
 	auto net = std::make_shared<Net>();
 	net->to(device_type);
@@ -93,13 +84,6 @@ auto main() -> int
 		TBL.add_scalar("Output", i, prediction[0][0].item<double>());
 		TBL.add_scalar("Output/Accuracy", i, abs(sin(j)-prediction[0][0].item<double>()));
 		TBLS.add_scalar("Output", i, sin(j));
-
-		/*std::cout << j << "\t" << prediction[0][0].item<double>() << "\t" << sin(j) << std::endl;
-		std::ofstream ofs("./graph.txt", std::ofstream::app);
-
-		ofs << j << ';' << prediction[0][0].item<double>() << ';' << sin(j) << std::endl;
-
-		ofs.close();*/
 		++i;
 	}
 }
