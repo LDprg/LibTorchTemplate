@@ -23,8 +23,7 @@ RelWithDebInfo
 MinSizeRel
 
 graph.txt
-
-!vendor
+runs
 
 detect_cuda_compute_capabilities.cpp
 detect_cuda_version.cc
