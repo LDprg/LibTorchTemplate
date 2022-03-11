@@ -7,9 +7,12 @@
 class TBFGenerator
 {
 public:
-	TBFGenerator(std::string logdir, std::string name = "run1", bool usedate = true)
+	TBFGenerator(std::string logdir, bool autoinc = true, std::string name = "run", bool usedate = true)
 	{
 		std::string path = "/tfevents.";
+
+		if (autoinc)
+			name += std::to_string(getInc(logdir, name));
 
 		std::filesystem::create_directories(logdir);
 		std::filesystem::create_directories(logdir + "/" + name);
@@ -34,4 +37,25 @@ public:
 
 private:
 	std::string data = "";
+
+	int getInc(std::string logdir, std::string name)
+	{
+		int num = 0;
+		for (const auto& entry : std::filesystem::directory_iterator(logdir))
+		{
+			std::string fname = entry.path().string().substr(entry.path().string().find_last_of("/\\") + 1);
+			if (fname.find(name) != std::string::npos)
+			{
+				//std::cout << entry.path() << "|" << fname << "|" << fname.substr(fname.find_last_of(name) + 1) << std::endl;
+				if (!fname.substr(fname.find_last_of(name) + 1).empty())
+				{
+					int fnum = std::stoi(fname.substr(fname.find_last_of(name) + 1));
+					if (num < fnum)
+						num = fnum;
+				}
+			}
+		}
+		++num;
+		return num;
+	}
 };

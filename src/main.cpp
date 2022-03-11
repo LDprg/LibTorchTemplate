@@ -49,7 +49,7 @@ auto main() -> int
 	auto net = std::make_shared<Net>();
 	net->to(device_type);
 	
-	TensorBoardLogger TBL(TBFGenerator("runs", "run9"));
+	TensorBoardLogger TBL(TBFGenerator("runs"));
 
 	torch::Tensor tensor;
 	torch::Tensor tensortar;
@@ -58,13 +58,13 @@ auto main() -> int
 	for (int i = 0; i < 20000; ++i)
 	{
 		optimizer.zero_grad();
-		tensor = torch::rand({20,1}, device_type) * M_PI * 2;
+		tensor = torch::rand({500,1}, device_type) * M_PI * 2;
 		tensortar = torch::sin(tensor);
 
 		torch::Tensor prediction = net->forward(tensor);
 		torch::Tensor loss = torch::mse_loss(prediction, tensortar);
 
-		if (i%500==0)
+		if (i%5000==0)
 		{
 			for (std::string j : net->named_parameters().keys())
 				TBL.add_histogram(std::regex_replace(j, std::regex("[.]"), "/"), i, toVector<double>(net->named_parameters()[j]));
@@ -75,7 +75,7 @@ auto main() -> int
 		optimizer.step();
 
 		TBL.add_scalar("Running/Loss", i, loss.item<double>());
-		TBL.add_scalar("Running/Accuracy", i, torch::sum(tensortar == prediction).item<double>());
+		TBL.add_scalar("Running/Accuracy", i, torch::sum(torch::abs(tensortar - prediction) < 0.1).item<double>());
 
 		if (i % 1000 == 0)
 		{
@@ -83,7 +83,7 @@ auto main() -> int
 		}
 	}
 
-	TensorBoardLogger TBLS(TBFGenerator("runs", "sine", false));
+	TensorBoardLogger TBLS(TBFGenerator("runs", false, "sine", false));
 	int i = 0;
 	for (double j = 0; j < M_PI * 2; j += 0.1)
 	{
@@ -94,12 +94,12 @@ auto main() -> int
 		TBL.add_scalar("Output/Accuracy", i, abs(sin(j)-prediction[0][0].item<double>()));
 		TBLS.add_scalar("Output", i, sin(j));
 
-		std::cout << j << "\t" << prediction[0][0].item<double>() << "\t" << sin(j) << std::endl;
+		/*std::cout << j << "\t" << prediction[0][0].item<double>() << "\t" << sin(j) << std::endl;
 		std::ofstream ofs("./graph.txt", std::ofstream::app);
 
 		ofs << j << ';' << prediction[0][0].item<double>() << ';' << sin(j) << std::endl;
 
-		ofs.close();
+		ofs.close();*/
 		++i;
 	}
 }
